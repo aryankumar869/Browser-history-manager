@@ -1,458 +1,211 @@
 # Browser-history-manager
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Browser History Manager</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-            color: #333;
-        }
-        h1 {
-            text-align: center;
-            color: #2c3e50;
-            margin-bottom: 30px;
-        }
-        .container {
-            background-color: white;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        .input-group {
-            display: flex;
-            margin-bottom: 20px;
-        }
-        input[type="text"] {
-            flex-grow: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px 0 0 4px;
-            font-size: 16px;
-        }
-        button {
-            padding: 10px 15px;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 0 4px 4px 0;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #2980b9;
-        }
-        .controls {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .controls button {
-            border-radius: 4px;
-        }
-        .controls button:nth-child(1) {
-            background-color: #16a085;
-        }
-        .controls button:nth-child(1):hover {
-            background-color: #1abc9c;
-        }
-        .controls button:nth-child(2) {
-            background-color: #e74c3c;
-        }
-        .controls button:nth-child(2):hover {
-            background-color: #c0392b;
-        }
-        .controls button:nth-child(3) {
-            background-color: #f39c12;
-        }
-        .controls button:nth-child(3):hover {
-            background-color: #d35400;
-        }
-        .history-list {
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 10px;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        .history-item {
-            padding: 8px 10px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .history-item:last-child {
-            border-bottom: none;
-        }
-        .history-item.current {
-            background-color: #eaf7fd;
-            font-weight: bold;
-        }
-        .delete-btn {
-            background-color: #e74c3c;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 3px 8px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-        .delete-btn:hover {
-            background-color: #c0392b;
-        }
-        .status {
-            margin-top: 10px;
-            padding: 8px;
-            border-radius: 4px;
-            background-color: #f8f9fa;
-            text-align: center;
-        }
-        .visualization {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #f8f9fa;
-            border-radius: 4px;
-        }
-        .stack-container {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 15px;
-        }
-        .stack {
-            width: 45%;
-            text-align: center;
-        }
-        .stack h3 {
-            margin-bottom: 10px;
-            color: #2c3e50;
-        }
-        .stack-item {
-            padding: 8px;
-            margin-bottom: 5px;
-            background-color: white;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        .diagram {
-            text-align: center;
-            margin-top: 20px;
-        }
-        .node {
-            display: inline-block;
-            padding: 10px 15px;
-            margin: 5px;
-            border: 1px solid #3498db;
-            border-radius: 4px;
-            background-color: #eaf7fd;
-            position: relative;
-        }
-        .node.current {
-            background-color: #3498db;
-            color: white;
-        }
-        .arrow {
-            display: inline-block;
-            font-size: 18px;
-            margin: 0 5px;
-            color: #7f8c8d;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Browser History Manager</h1>
-        
-        <div class="input-group">
-            <input type="text" id="urlInput" placeholder="Enter URL (e.g., https://example.com)">
-            <button onclick="visitPage()">Visit</button>
-        </div>
-        
-        <div class="controls">
-            <button onclick="goBack()">Back</button>
-            <button onclick="goForward()">Forward</button>
-            <button onclick="showHistory()">Show History</button>
-        </div>
-        
-        <div id="status" class="status">Ready</div>
-        
-        <div class="history-list" id="historyList">
-            <div class="history-item">History will appear here</div>
-        </div>
-        
-        <div class="visualization">
-            <h3>Data Structure Visualization</h3>
-            <div class="stack-container">
-                <div class="stack">
-                    <h3>Back Stack</h3>
-                    <div id="backStack"></div>
-                </div>
-                <div class="stack">
-                    <h3>Forward Stack</h3>
-                    <div id="forwardStack"></div>
-                </div>
-            </div>
-            
-            <div class="diagram">
-                <h3>Linked List Representation</h3>
-                <div id="linkedListDiagram"></div>
-            </div>
-        </div>
-    </div>
+import javax.swing.*;
+import java.awt.*;
+import java.util.*;
 
-    <script>
-        // Data structures implementation
-        class Node {
-            constructor(url) {
-                this.url = url;
-                this.prev = null;
-                this.next = null;
-            }
+public class BrowserHistoryManager extends JFrame {
+    JTextField urlInput;
+    JTextArea historyDisplay, backStackDisplay, forwardStackDisplay, linkedListDisplay;
+    JButton visitBtn, backBtn, forwardBtn, showHistoryBtn, clearHistoryBtn;
+
+    Node head = null, tail = null, current = null;
+    Stack<String> backStack = new Stack<>();
+    Stack<String> forwardStack = new Stack<>();
+
+    class Node {
+        String url;
+        Node prev, next;
+
+        Node(String url) {
+            this.url = url;
+        }
+    }
+
+    public BrowserHistoryManager() {
+        setTitle("Browser History Manager");
+        setSize(800, 600);
+        setLayout(new BorderLayout());
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+
+        // Top Panel (URL input + Visit)
+        JPanel topPanel = new JPanel(new BorderLayout());
+        urlInput = new JTextField();
+        visitBtn = new JButton("Visit");
+        topPanel.add(urlInput, BorderLayout.CENTER);
+        topPanel.add(visitBtn, BorderLayout.EAST);
+
+        // Control Buttons
+        JPanel controlPanel = new JPanel();
+        backBtn = new JButton("Back");
+        forwardBtn = new JButton("Forward");
+        showHistoryBtn = new JButton("Show History");
+        clearHistoryBtn = new JButton("Clear History"); // New button
+        controlPanel.add(backBtn);
+        controlPanel.add(forwardBtn);
+        controlPanel.add(showHistoryBtn);
+        controlPanel.add(clearHistoryBtn); // Add to control panel
+
+        // Displays
+        historyDisplay = new JTextArea(10, 50);
+        historyDisplay.setEditable(false);
+        JScrollPane historyScroll = new JScrollPane(historyDisplay);
+
+        backStackDisplay = new JTextArea(10, 15);
+        forwardStackDisplay = new JTextArea(10, 15);
+        backStackDisplay.setEditable(false);
+        forwardStackDisplay.setEditable(false);
+
+        JPanel stackPanel = new JPanel(new GridLayout(1, 2));
+        stackPanel.add(new JScrollPane(backStackDisplay));
+        stackPanel.add(new JScrollPane(forwardStackDisplay));
+
+        JPanel labelPanel = new JPanel(new GridLayout(1, 2));
+        labelPanel.add(new JLabel("Back Stack", SwingConstants.CENTER));
+        labelPanel.add(new JLabel("Forward Stack", SwingConstants.CENTER));
+
+        linkedListDisplay = new JTextArea(3, 50);
+        linkedListDisplay.setEditable(false);
+
+        // Layout
+        add(topPanel, BorderLayout.NORTH);
+        add(controlPanel, BorderLayout.CENTER);
+        add(historyScroll, BorderLayout.WEST);
+        add(stackPanel, BorderLayout.EAST);
+        add(labelPanel, BorderLayout.SOUTH);
+        add(linkedListDisplay, BorderLayout.SOUTH);
+
+        // Action Listeners
+        visitBtn.addActionListener(e -> visitPage());
+        backBtn.addActionListener(e -> goBack());
+        forwardBtn.addActionListener(e -> goForward());
+        showHistoryBtn.addActionListener(e -> showHistory());
+        clearHistoryBtn.addActionListener(e -> clearHistory()); // NEW
+
+        // Seed data
+        addPage("https://example.com");
+        addPage("https://google.com");
+        addPage("https://github.com");
+
+        updateUI();
+    }
+
+    void visitPage() {
+        String url = urlInput.getText().trim();
+        if (url.isEmpty()) return;
+
+        if (current != null) {
+            backStack.push(current.url);
         }
 
-        class History {
-            constructor() {
-                this.head = null;
-                this.tail = null;
-                this.current = null;
-                this.backStack = [];
-                this.forwardStack = [];
-            }
+        forwardStack.clear();
+        addPage(url);
+        urlInput.setText("");
+        updateUI();
+    }
 
-            // Add new URL to history
-            add(url) {
-                const newNode = new Node(url);
-                
-                if (!this.head) {
-                    this.head = newNode;
-                    this.tail = newNode;
-                } else {
-                    newNode.prev = this.tail;
-                    this.tail.next = newNode;
-                    this.tail = newNode;
-                }
-                
-                // When adding a new page, clear forward stack
-                this.forwardStack = [];
-                this.current = newNode;
-                this.updateDisplay();
-            }
+    void addPage(String url) {
+        Node newNode = new Node(url);
+        if (head == null) {
+            head = tail = newNode;
+        } else {
+            tail.next = newNode;
+            newNode.prev = tail;
+            tail = newNode;
+        }
+        current = newNode;
+    }
 
-            // Delete URL from history
-            delete(url) {
-                let node = this.head;
-                while (node) {
-                    if (node.url === url) {
-                        if (node === this.head) {
-                            this.head = node.next;
-                            if (this.head) {
-                                this.head.prev = null;
-                            }
-                        } else if (node === this.tail) {
-                            this.tail = node.prev;
-                            if (this.tail) {
-                                this.tail.next = null;
-                            }
-                        } else {
-                            node.prev.next = node.next;
-                            node.next.prev = node.prev;
-                        }
-                        
-                        // If we're deleting current page, reset current
-                        if (node === this.current) {
-                            this.current = this.tail;
-                        }
-                        
-                        // Remove from stacks if present
-                        this.backStack = this.backStack.filter(item => item !== url);
-                        this.forwardStack = this.forwardStack.filter(item => item !== url);
-                        
-                        break;
-                    }
-                    node = node.next;
-                }
-                this.updateDisplay();
-            }
+    void goBack() {
+        if (current != null && current.prev != null) {
+            forwardStack.push(current.url);
+            current = current.prev;
+            backStack.pop();
+        } else if (!backStack.isEmpty()) {
+            forwardStack.push(current.url);
+            current = findNode(backStack.pop());
+        } else {
+            JOptionPane.showMessageDialog(this, "No more back history");
+        }
+        updateUI();
+    }
 
-            // Go back in history
-            goBack() {
-                if (this.current && this.current.prev) {
-                    this.forwardStack.push(this.current.url);
-                    this.backStack.pop(); // Remove from back stack as we're going back to it
-                    this.current = this.current.prev;
-                    this.updateDisplay();
-                    return true;
-                } else if (this.backStack.length > 0) {
-                    this.forwardStack.push(this.current.url);
-                    this.current = this.findNode(this.backStack.pop());
-                    this.updateDisplay();
-                    return true;
-                }
-                return false;
-            }
+    void goForward() {
+        if (!forwardStack.isEmpty()) {
+            backStack.push(current.url);
+            current = findNode(forwardStack.pop());
+        } else {
+            JOptionPane.showMessageDialog(this, "No more forward history");
+        }
+        updateUI();
+    }
 
-            // Go forward in history
-            goForward() {
-                if (this.forwardStack.length > 0) {
-                    if (this.current) {
-                        this.backStack.push(this.current.url);
-                    }
-                    const nextUrl = this.forwardStack.pop();
-                    this.current = this.findNode(nextUrl);
-                    this.updateDisplay();
-                    return true;
-                } else if (this.current && this.current.next) {
-                    this.backStack.push(this.current.url);
-                    this.current = this.current.next;
-                    this.updateDisplay();
-                    return true;
-                }
-                return false;
-            }
+    void showHistory() {
+        java.util.List<String> urls = getAllHistory();
+        historyDisplay.setText("History:\n");
+        for (String url : urls) {
+            historyDisplay.append(url + (current != null && url.equals(current.url) ? " (current)\n" : "\n"));
+        }
+    }
 
-            // Find node by URL
-            findNode(url) {
-                let node = this.head;
-                while (node) {
-                    if (node.url === url) {
-                        return node;
-                    }
-                    node = node.next;
-                }
-                return null;
-            }
+    java.util.List<String> getAllHistory() {
+        java.util.List<String> list = new ArrayList<>();
+        Node temp = head;
+        while (temp != null) {
+            list.add(temp.url);
+            temp = temp.next;
+        }
+        return list;
+    }
 
-            // Get all history as array
-            getAllHistory() {
-                const history = [];
-                let node = this.head;
-                while (node) {
-                    history.push(node.url);
-                    node = node.next;
-                }
-                return history;
-            }
+    Node findNode(String url) {
+        Node temp = head;
+        while (temp != null) {
+            if (temp.url.equals(url)) return temp;
+            temp = temp.next;
+        }
+        return null;
+    }
 
-            // Update the visual display
-            updateDisplay() {
-                // Update history list
-                const historyList = document.getElementById('historyList');
-                historyList.innerHTML = '';
-                
-                const allHistory = this.getAllHistory();
-                if (allHistory.length === 0) {
-                    historyList.innerHTML = '<div class="history-item">No history yet</div>';
-                    return;
-                }
-                
-                allHistory.forEach(url => {
-                    const item = document.createElement('div');
-                    item.className = 'history-item';
-                    if (this.current && url === this.current.url) {
-                        item.classList.add('current');
-                    }
-                    
-                    item.innerHTML = `
-                        <span>${url}</span>
-                        <button class="delete-btn" onclick="deleteUrl('${url}')">Delete</button>
-                    `;
-                    historyList.appendChild(item);
-                });
-                
-                // Update status
-                const status = document.getElementById('status');
-                status.textContent = this.current 
-                    ? `Current page: ${this.current.url}` 
-                    : 'No current page';
-                
-                // Update stacks visualization
-                document.getElementById('backStack').innerHTML = 
-                    this.backStack.map(url => `<div class="stack-item">${url}</div>`).join('');
-                
-                document.getElementById('forwardStack').innerHTML = 
-                    this.forwardStack.map(url => `<div class="stack-item">${url}</div>`).join('');
-                
-                // Update linked list diagram
-                const diagram = document.getElementById('linkedListDiagram');
-                diagram.innerHTML = '';
-                
-                let node = this.head;
-                while (node) {
-                    const nodeDiv = document.createElement('div');
-                    nodeDiv.className = 'node';
-                    if (this.current && node.url === this.current.url) {
-                        nodeDiv.classList.add('current');
-                    }
-                    nodeDiv.textContent = node.url;
-                    
-                    diagram.appendChild(nodeDiv);
-                    
-                    if (node.next) {
-                        const arrow = document.createElement('div');
-                        arrow.className = 'arrow';
-                        arrow.textContent = '→';
-                        diagram.appendChild(arrow);
-                    }
-                    
-                    node = node.next;
-                }
-            }
+    void clearHistory() {
+        int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to clear all history?", "Confirm", JOptionPane.YES_NO_OPTION);
+        if (confirm == JOptionPane.YES_OPTION) {
+            head = null;
+            tail = null;
+            current = null;
+            backStack.clear();
+            forwardStack.clear();
+            historyDisplay.setText("");
+            JOptionPane.showMessageDialog(this, "History cleared.");
+            updateUI();
+        }
+    }
+
+    void updateUI() {
+        // Update stacks
+        backStackDisplay.setText("Back Stack:\n");
+        for (String url : backStack) {
+            backStackDisplay.append(url + "\n");
         }
 
-        // Create history manager instance
-        const historyManager = new History();
-
-        // UI functions
-        function visitPage() {
-            const urlInput = document.getElementById('urlInput');
-            const url = urlInput.value.trim();
-            
-            if (url) {
-                // Push current page to back stack before visiting new one
-                if (historyManager.current) {
-                    historyManager.backStack.push(historyManager.current.url);
-                }
-                
-                historyManager.add(url);
-                urlInput.value = '';
-            }
+        forwardStackDisplay.setText("Forward Stack:\n");
+        for (String url : forwardStack) {
+            forwardStackDisplay.append(url + "\n");
         }
 
-        function goBack() {
-            if (!historyManager.goBack()) {
-                document.getElementById('status').textContent = 'Cannot go back further';
-            }
+        // Linked list visual
+        StringBuilder listBuilder = new StringBuilder("Linked List:\n");
+        Node temp = head;
+        while (temp != null) {
+            listBuilder.append(temp == current ? "[" + temp.url + "]" : temp.url);
+            if (temp.next != null) listBuilder.append(" <-> ");
+            temp = temp.next;
         }
+        linkedListDisplay.setText(listBuilder.toString());
+    }
 
-        function goForward() {
-            if (!historyManager.goForward()) {
-                document.getElementById('status').textContent = 'Cannot go forward further';
-            }
-        }
-
-        function deleteUrl(url) {
-            historyManager.delete(url);
-        }
-
-        function showHistory() {
-            const allHistory = historyManager.getAllHistory();
-            document.getElementById('status').textContent = 
-                allHistory.length > 0 
-                    ? `History: ${allHistory.join(', ')}` 
-                    : 'No history available';
-        }
-
-        // Initialize with some example URLs
-        historyManager.add('https://example.com');
-        historyManager.add('https://google.com');
-        historyManager.add('https://github.com');
-    </script>
-</body>
-</html>
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            new BrowserHistoryManager().setVisible(true);
+        });
+    }
+}
